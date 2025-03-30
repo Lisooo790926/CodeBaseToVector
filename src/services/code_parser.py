@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 from typing import List, Dict, Optional
-from tree_sitter import Language, Parser
 import logging
 
 from ..config.config import settings
