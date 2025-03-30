@@ -52,8 +52,8 @@ This MCP Server aims to:
 - [V] Vector storage structure
 
 ### Phase 3: Storage Layer
-- [ ] Qdrant setup
-- [ ] Vector storage and retrieval
+- [V] Qdrant setup
+- [V] Vector storage and retrieval
 - [ ] Project isolation mechanism
 
 ### Phase 4: API & Integration
@@ -84,7 +84,6 @@ pip install -r requirements.txt
 GOOGLE_API_KEY=xxxxxxx
 QDRANT_HOST=localhost
 QDRANT_PORT=6333
-MAX_FILE_SIZE=512
 ```
 
 ## Project Structure

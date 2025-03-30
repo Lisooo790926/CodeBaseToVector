@@ -2,12 +2,8 @@ import os
 from typing import List
 import logging
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from ..config.config import settings
+from ..config.settings import settings
 from ..type_definitions.code_types import CodeMetadata, CodeInfo, ProcessedCodeChunk
-
-# 設置日誌級別，包含 DEBUG
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
 class VectorEmbeddingService:
     """Service for generating embeddings using Google Generative AI.
@@ -18,16 +14,17 @@ class VectorEmbeddingService:
     
     def __init__(self):
         """Initialize the embedding service with Google Generative AI."""
+        self.logger = logging.getLogger(__name__)
         try:
-            logger.debug("Initializing Google Generative AI embedding service...")
+            self.logger.debug("Initializing Google Generative AI embedding service...")
             self.model = GoogleGenerativeAIEmbeddings(
                 model="models/gemini-embedding-exp-03-07",
                 google_api_key=settings.GOOGLE_API_KEY,
                 task_type="retrieval_document",
             )
-            logger.info("Successfully initialized Google Generative AI embedding service")
+            self.logger.info("Successfully initialized Google Generative AI embedding service")
         except Exception as e:
-            logger.error(f"Failed to initialize embedding service: {str(e)}")
+            self.logger.error(f"Failed to initialize embedding service: {str(e)}")
             raise
 
     def _preprocess_code(self, code: str) -> str:
@@ -44,7 +41,7 @@ class VectorEmbeddingService:
         Returns:
             Preprocessed code ready for embedding
         """
-        logger.debug(f"Starting code preprocessing. Original length: {len(code.split(chr(10)))}")
+        self.logger.debug(f"Starting code preprocessing. Original length: {len(code.split(chr(10)))}")
         
         # 移除空白行但保留縮進
         lines = code.split('\n')
@@ -57,7 +54,7 @@ class VectorEmbeddingService:
                 processed_lines.append(processed_line)
         
         processed_code = '\n'.join(processed_lines)
-        logger.debug(f"Finished preprocessing. Final length: {len(processed_code.split(chr(10)))}")
+        self.logger.debug(f"Finished preprocessing. Final length: {len(processed_code.split(chr(10)))}")
         return processed_code
 
     async def generate_embedding(self, text: str) -> List[float]:
@@ -70,17 +67,16 @@ class VectorEmbeddingService:
             List of embedding values
         """
         try:
-            logger.debug(f"Generating embedding for text of length: {len(text)}")
+            self.logger.debug(f"Generating embedding for text of length: {len(text)}")
             processed_text = self._preprocess_code(text)
             
-            logger.debug("Calling embedding model...")
             embedding = await self.model.aembed_query(processed_text)
-            logger.debug(f"Generated embedding of dimension: {len(embedding)}")
+            self.logger.debug(f"Generated embedding of dimension: {len(embedding)}")
             
             return embedding
             
         except Exception as e:
-            logger.error(f"Error generating embedding: {str(e)}")
+            self.logger.error(f"Error generating embedding: {str(e)}")
             raise
 
     async def generate_embeddings_batch(self, texts: List[str]) -> List[List[float]]:
@@ -93,16 +89,16 @@ class VectorEmbeddingService:
             List of embedding vectors
         """
         try:
-            logger.debug(f"Processing batch of {len(texts)} texts")
+            self.logger.debug(f"Processing batch of {len(texts)} texts")
             processed_texts = [self._preprocess_code(text) for text in texts]
             
             embeddings = await self.model.aembed_documents(processed_texts)
-            logger.info(f"Generated {len(embeddings)} embeddings")
+            self.logger.info(f"Generated {len(embeddings)} embeddings")
             
             return embeddings
             
         except Exception as e:
-            logger.error(f"Error generating batch embeddings: {str(e)}")
+            self.logger.error(f"Error generating batch embeddings: {str(e)}")
             raise
 
     def _create_metadata(self, code_info: CodeInfo) -> CodeMetadata:
@@ -114,7 +110,7 @@ class VectorEmbeddingService:
         Returns:
             Metadata dictionary
         """
-        logger.debug(f"Creating metadata for code: {code_info.get('name', 'unnamed')}")
+        self.logger.debug(f"Creating metadata for code: {code_info.get('name', 'unnamed')}")
         return {
             'file_path': code_info.get('file_path', ''),
             'type': code_info.get('type', 'unknown'),
@@ -134,13 +130,13 @@ class VectorEmbeddingService:
             Dictionary with embedding and metadata
         """
         try:
-            logger.debug(f"Processing code chunk from file: {code_info.get('file_path')}")
-            logger.debug(f"Code type: {code_info.get('type')}, name: {code_info.get('name')}")
+            self.logger.debug(f"Processing code chunk from file: {code_info.get('file_path')}")
+            self.logger.debug(f"Code type: {code_info.get('type')}, name: {code_info.get('name')}")
             
             embedding = await self.generate_embedding(code_info['content'])
             metadata = self._create_metadata(code_info)
             
-            logger.debug("Successfully processed code chunk and generated embedding")
+            self.logger.debug("Successfully processed code chunk and generated embedding")
             return {
                 'embedding': embedding,
                 'metadata': metadata,
@@ -148,5 +144,5 @@ class VectorEmbeddingService:
             }
             
         except Exception as e:
-            logger.error(f"Error processing code chunk: {str(e)}")
+            self.logger.error(f"Error processing code chunk: {str(e)}")
             raise 

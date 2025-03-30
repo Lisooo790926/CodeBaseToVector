@@ -1,0 +1,26 @@
+from pydantic_settings import BaseSettings
+from typing import Optional
+
+
+class Settings(BaseSettings):
+    """Application settings."""
+    
+    # Google API settings
+    GOOGLE_API_KEY: str
+    
+    # Qdrant settings
+    QDRANT_HOST: str = "localhost"
+    QDRANT_PORT: int = 6333
+    QDRANT_COLLECTION_NAME: str = "code_vectors"
+    VECTOR_SIZE: int = 3072
+    
+    # Project settings
+    DEFAULT_LANGUAGE: str = "java"
+    
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+
+
+# Global settings instance
+settings = Settings() 
