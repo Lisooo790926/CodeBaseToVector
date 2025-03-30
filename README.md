@@ -48,7 +48,6 @@ This MCP Server aims to:
 - [v] Metadata extraction (methods, classes)
 
 ### Phase 2: Vectorization
-- [ ] Google Vertex AI integration
 - [ ] Embedding generation
 - [ ] Vector storage structure
 
@@ -82,11 +81,10 @@ This MCP Server aims to:
 pip install -r requirements.txt
 
 # Required environment variables
-GOOGLE_CLOUD_PROJECT=your-project-id
-GOOGLE_APPLICATION_CREDENTIALS=path/to/credentials.json
+GOOGLE_API_KEY=xxxxxxx
 QDRANT_HOST=localhost
 QDRANT_PORT=6333
-MAX_FILE_SIZE=1000
+MAX_FILE_SIZE=512
 ```
 
 ## Project Structure

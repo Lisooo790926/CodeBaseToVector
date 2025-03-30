@@ -1,66 +1,75 @@
-import unittest
+import pytest
 import os
 from pathlib import Path
 
 from src.services.code_parser import JavaCodeParser
 
-class TestJavaCodeParser(unittest.TestCase):
-    def setUp(self):
-        self.parser = JavaCodeParser()
-        # Get the absolute path of the test directory
-        self.test_dir = os.path.dirname(os.path.abspath(__file__))
-        self.test_app_dir = os.path.join(os.path.dirname(self.test_dir), 'test_app')
+@pytest.fixture
+def parser():
+    """創建 JavaCodeParser 實例"""
+    return JavaCodeParser()
+
+@pytest.fixture
+def test_paths():
+    """獲取測試相關的路徑"""
+    test_dir = os.path.dirname(os.path.abspath(__file__))
+    test_app_dir = os.path.join(os.path.dirname(test_dir), 'test_app')
+    return {
+        'test_dir': test_dir,
+        'test_app_dir': test_app_dir
+    }
+
+@pytest.fixture
+def java_file(test_paths):
+    """找到一個測試用的 Java 文件"""
+    for root, _, files in os.walk(test_paths['test_app_dir']):
+        for file in files:
+            if file.endswith('.java'):
+                return os.path.join(root, file)
+    pytest.fail("No Java file found in test_app directory")
+
+def test_parse_directory(parser, test_paths):
+    """測試解析 Java 文件目錄"""
+    parsed_files = parser.parse_directory(test_paths['test_app_dir'])
+    assert len(parsed_files) > 0
+    print(f"Successfully parsed {len(parsed_files)} files from directory")
+
+def test_parse_file(parser, java_file):
+    """測試解析單個 Java 文件"""
+    # 解析文件
+    parsed_file = parser.parse_file(java_file)
+    
+    # 基本斷言
+    assert parsed_file is not None
+    assert 'file_path' in parsed_file
+    assert 'content' in parsed_file
+    assert 'size' in parsed_file
+    
+    # 元數據斷言
+    assert 'package' in parsed_file
+    assert 'imports' in parsed_file
+    assert 'classes' in parsed_file
+    
+    # 如果有類，測試類的元數據
+    if parsed_file['classes']:
+        test_class = parsed_file['classes'][0]
+        assert 'name' in test_class
+        assert 'modifiers' in test_class
+        assert 'fields' in test_class
+        assert 'methods' in test_class
         
-    def test_parse_directory(self):
-        """Test parsing a directory of Java files"""
-        parsed_files = self.parser.parse_directory(self.test_app_dir)
-        self.assertTrue(len(parsed_files) > 0)
-        
-    def test_parse_file(self):
-        """Test parsing a single Java file"""
-        # Find a Java file in the test_app directory
-        java_file = None
-        for root, _, files in os.walk(self.test_app_dir):
-            for file in files:
-                if file.endswith('.java'):
-                    java_file = os.path.join(root, file)
-                    break
-            if java_file:
-                break
-                
-        self.assertIsNotNone(java_file, "No Java file found in test_app directory")
-        
-        # Parse the file
-        parsed_file = self.parser.parse_file(java_file)
-        
-        # Basic assertions
-        self.assertIsNotNone(parsed_file)
-        self.assertIn('file_path', parsed_file)
-        self.assertIn('content', parsed_file)
-        self.assertIn('size', parsed_file)
-        
-        # New metadata assertions
-        self.assertIn('package', parsed_file)
-        self.assertIn('imports', parsed_file)
-        self.assertIn('classes', parsed_file)
-        
-        # If there are classes, test class metadata
-        if parsed_file['classes']:
-            test_class = parsed_file['classes'][0]
-            self.assertIn('name', test_class)
-            self.assertIn('modifiers', test_class)
-            self.assertIn('fields', test_class)
-            self.assertIn('methods', test_class)
+        # 如果有方法，測試方法的元數據
+        if test_class['methods']:
+            test_method = test_class['methods'][0]
+            assert 'name' in test_method
+            assert 'parameters' in test_method
+            assert 'modifiers' in test_method
+            assert 'body' in test_method
+            assert 'start_line' in test_method
+            assert 'end_line' in test_method
             
-            # If there are methods, test method metadata
-            if test_class['methods']:
-                test_method = test_class['methods'][0]
-                self.assertIn('name', test_method)
-                self.assertIn('parameters', test_method)
-                self.assertIn('modifiers', test_method)
-                self.assertIn('body', test_method)
-                self.assertIn('start_line', test_method)
-                self.assertIn('end_line', test_method)
+            print(f"Successfully parsed file: {java_file}")
+            print(f"Found class: {test_class['name']} with {len(test_class['methods'])} methods")
 
 if __name__ == '__main__':
-    unittest.main() 
+    pytest.main(['-v', __file__]) 
