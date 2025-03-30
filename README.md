@@ -48,8 +48,8 @@ This MCP Server aims to:
 - [v] Metadata extraction (methods, classes)
 
 ### Phase 2: Vectorization
-- [ ] Embedding generation
-- [ ] Vector storage structure
+- [V] Embedding generation
+- [V] Vector storage structure
 
 ### Phase 3: Storage Layer
 - [ ] Qdrant setup

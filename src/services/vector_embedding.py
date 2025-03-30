@@ -96,9 +96,8 @@ class VectorEmbeddingService:
             logger.debug(f"Processing batch of {len(texts)} texts")
             processed_texts = [self._preprocess_code(text) for text in texts]
             
-            logger.debug("Generating batch embeddings...")
             embeddings = await self.model.aembed_documents(processed_texts)
-            logger.debug(f"Generated {len(embeddings)} embeddings")
+            logger.info(f"Generated {len(embeddings)} embeddings")
             
             return embeddings
             
