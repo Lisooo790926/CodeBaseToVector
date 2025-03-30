@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     # Qdrant settings
     QDRANT_HOST: str = "localhost"
     QDRANT_PORT: int = 6333
+    QDRANT_GRPC_PORT: Optional[int] = 6334
     QDRANT_COLLECTION_NAME: str = "code_vectors"
     VECTOR_SIZE: int = 3072
     
@@ -20,6 +21,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "allow"  # Allow extra fields in environment variables
 
 
 # Global settings instance

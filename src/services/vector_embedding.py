@@ -2,8 +2,7 @@ import os
 from typing import List
 import logging
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from ..config.settings import settings
-from ..type_definitions.code_types import CodeMetadata, CodeInfo, ProcessedCodeChunk
+from src.config.settings import settings
 
 class VectorEmbeddingService:
     """Service for generating embeddings using Google Generative AI.
@@ -100,49 +99,3 @@ class VectorEmbeddingService:
         except Exception as e:
             self.logger.error(f"Error generating batch embeddings: {str(e)}")
             raise
-
-    def _create_metadata(self, code_info: CodeInfo) -> CodeMetadata:
-        """Create metadata for storing with embeddings.
-        
-        Args:
-            code_info: Dictionary containing code information
-            
-        Returns:
-            Metadata dictionary
-        """
-        self.logger.debug(f"Creating metadata for code: {code_info.get('name', 'unnamed')}")
-        return {
-            'file_path': code_info.get('file_path', ''),
-            'type': code_info.get('type', 'unknown'),
-            'name': code_info.get('name', ''),
-            'start_line': code_info.get('start_line', 0),
-            'end_line': code_info.get('end_line', 0),
-            'package': code_info.get('package', ''),
-        }
-
-    async def process_code_chunk(self, code_info: CodeInfo) -> ProcessedCodeChunk:
-        """Process a code chunk and generate its embedding with metadata.
-        
-        Args:
-            code_info: Dictionary containing code chunk information
-            
-        Returns:
-            Dictionary with embedding and metadata
-        """
-        try:
-            self.logger.debug(f"Processing code chunk from file: {code_info.get('file_path')}")
-            self.logger.debug(f"Code type: {code_info.get('type')}, name: {code_info.get('name')}")
-            
-            embedding = await self.generate_embedding(code_info['content'])
-            metadata = self._create_metadata(code_info)
-            
-            self.logger.debug("Successfully processed code chunk and generated embedding")
-            return {
-                'embedding': embedding,
-                'metadata': metadata,
-                'content': code_info['content']
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Error processing code chunk: {str(e)}")
-            raise 

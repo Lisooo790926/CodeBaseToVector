@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import List, Dict, Optional, Any
 import logging
 
-from type_definitions.code_types import ClassInfo, CodeMetadata, FieldInfo, MethodInfo, ParameterInfo
+from src.type_definitions.code_types import ClassInfo, CodeMetadata, FieldInfo, MethodInfo, ParameterInfo
 
-from ..config.settings import settings
+from src.config.settings import settings
 from tree_sitter_languages import get_language, get_parser
 
 class JavaCodeParser:
@@ -238,6 +238,7 @@ class JavaCodeParser:
             with open(file_path, 'rb') as f:
                 content = f.read()
 
+            print(f"Parsing file {file_path}")
             file_info = CodeMetadata(
                 file_path=file_path,
                 content=content.decode('utf-8'),

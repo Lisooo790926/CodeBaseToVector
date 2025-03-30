@@ -1,10 +1,10 @@
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Any, Optional
 import logging
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from qdrant_client.http.models import Distance, VectorParams, PointStruct
 
-from type_definitions.code_types import CodeVectorMetadata
+from src.type_definitions.code_types import CodeVectorMetadata
 
 class VectorStorageService:
     """Service for managing vector storage operations using Qdrant."""
