@@ -1,76 +1,111 @@
-# Vector API Router
+# MCP Server for Code Understanding
 
-This project implements a vector-based API router using Qdrant for vector storage and Google's Generative AI for embeddings.
+A specialized MCP (Memory Context Provider) server designed to enhance AI agents' understanding of Java Spring Boot projects, particularly for test case design.
 
-## Setup
+## Project Purpose
 
-1. Set up virtual environment:
+This MCP Server aims to:
+1. Convert user codebases into vector storage for better project comprehension
+2. Provide AI agents with long-term memory capabilities
+3. Optimize specifically for Java Spring Boot projects
 
-Option 1: Using setup script (recommended)
+## Key Features
+
+### 1. Update Codebase (updateCodebase)
+- **Input**:
+  - projectName: Project identifier
+  - codebase folder: Complete code directory
+- **Process**:
+  - Read and parse code
+  - Convert to vectors
+  - Store in project-specific collection
+- **Output**:
+  - Success/Failure status
+
+### 2. Query Codebase (readCodeBase)
+- **Input**:
+  - projectName: Project identifier
+  - question: Query text
+- **Process**:
+  - Convert question to vector
+  - Search relevant code in project collection
+- **Output**:
+  - Top 5 most relevant results with similarity scores
+
+## Technical Stack
+
+- **Embedding**: Google Vertex AI (gemini-embedding-exp-03-07)
+- **Vector Storage**: Qdrant
+- **Code Parsing**: tree-sitter-languages
+
+## Implementation Plan
+
+### Phase 1: Core Functionality
+- ✅ Basic project structure setup
+- ✅ Basic Java file reading
+- [ ] Tree-sitter code structure parsing
+- [ ] File splitting logic
+- [ ] Metadata extraction (methods, classes)
+
+### Phase 2: Vectorization
+- [ ] Google Vertex AI integration
+- [ ] Embedding generation
+- [ ] Vector storage structure
+
+### Phase 3: Storage Layer
+- [ ] Qdrant setup
+- [ ] Vector storage and retrieval
+- [ ] Project isolation mechanism
+
+### Phase 4: API & Integration
+- [ ] MCP Server interface
+- [ ] Component integration
+- [ ] Error handling and logging
+
+### Phase 5: Testing & Optimization
+- [ ] Unit testing
+- [ ] Integration testing
+- [ ] Performance optimization
+- [ ] Documentation
+
+## Special Requirements
+
+### Java File Processing
+- Chunk by Java file unit
+- Split by method when file is too large
+- Maintain method relationships
+
+## Environment Setup
+
 ```bash
-chmod +x setup.sh
-./setup.sh
-```
-
-Option 2: Manual setup
-```bash
-# Create virtual environment
-python3 -m venv venv
-
-# Activate virtual environment
-source venv/bin/activate  # On Unix/macOS
-# or
-.\venv\Scripts\activate  # On Windows
-
 # Install dependencies
 pip install -r requirements.txt
+
+# Required environment variables
+GOOGLE_CLOUD_PROJECT=your-project-id
+GOOGLE_APPLICATION_CREDENTIALS=path/to/credentials.json
+QDRANT_HOST=localhost
+QDRANT_PORT=6333
+MAX_FILE_SIZE=1000
 ```
 
-2. Set up environment variables:
-- Copy `.env.example` to `.env`
-- Add your Google API key to `.env`
+## Project Structure
 
-3. Start Vector Storage (Qdrant):
-
-Option 1: Using Docker Compose (recommended)
-```bash
-# Start Qdrant
-docker-compose up -d
-
-# Stop Qdrant
-docker-compose down
-
-# View logs
-docker-compose logs -f
+```
+.
+├── src/
+│   ├── config/         # Configuration management
+│   └── services/       # Core services
+├── tests/             # Test files
+├── test_app/          # Sample Spring Boot app for testing
+├── requirements.txt   # Python dependencies
+└── README.md         # This file
 ```
 
-Option 2: Using Docker directly
-```bash
-docker run -p 6333:6333 qdrant/qdrant
-```
+## Development Status
 
-4. Place your API specifications in the `api_specs` directory as YAML files.
+Currently in Phase 1: Implementing core functionality for Java code parsing and analysis.
 
-## Usage
+## Contributing
 
-```python
-from vector_store import VectorApiRouter
-
-router = VectorApiRouter(api_specs_dir="api_specs")
-matching_route = router.find_route("How do I create a new user?")
-```
-
-## Development
-
-To deactivate the virtual environment when you're done:
-```bash
-deactivate
-```
-
-## Vector Storage Management
-
-Qdrant is accessible at:
-- REST API: http://localhost:6333
-- GRPC: localhost:6334
-
-The vector storage data is persisted in a Docker volume named `qdrant_storage`. 
+This is an internal tool for enhancing AI agent capabilities in understanding and testing Java Spring Boot projects. 

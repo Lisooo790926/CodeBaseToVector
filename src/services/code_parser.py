@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import logging
 
 from ..config.config import settings
@@ -10,52 +10,248 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class JavaCodeParser:
+    """Parser for Java source code using tree-sitter.
+    
+    This class provides functionality to parse Java source files and extract
+    structural information such as classes, methods, and fields.
+    """
+    
     def __init__(self):
-        """Initialize the Java code parser"""
+        """Initialize the Java code parser with tree-sitter."""
         try:
-            # Get the Java language and parser from tree_sitter_languages
             self.JAVA_LANGUAGE = get_language('java')
             self.parser = get_parser('java')
         except Exception as e:
             logger.error(f"Failed to initialize Java parser: {str(e)}")
             raise
+
+    def _extract_node_text(self, node: Any, content: bytes) -> str:
+        """Extract text from a tree-sitter node.
         
-    def parse_file(self, file_path: str) -> Optional[Dict]:
+        Args:
+            node: Tree-sitter node
+            content: Source file content in bytes
+            
+        Returns:
+            Extracted text as string
         """
-        Parse a single Java file
+        return content[node.start_byte:node.end_byte].decode('utf-8')
+
+    def _extract_parameters(self, params_node: Any, content: bytes) -> List[Dict[str, str]]:
+        """Extract method parameters from a formal_parameters node.
+        
+        Args:
+            params_node: Tree-sitter node containing formal parameters
+            content: Source file content in bytes
+            
+        Returns:
+            List of parameter information dictionaries
+        """
+        parameters = []
+        for param in params_node.children:
+            if param.type == 'formal_parameter':
+                param_info = self._extract_parameter_info(param, content)
+                if param_info:
+                    parameters.append(param_info)
+        return parameters
+
+    def _extract_parameter_info(self, param_node: Any, content: bytes) -> Optional[Dict[str, str]]:
+        """Extract information from a single parameter node.
+        
+        Args:
+            param_node: Tree-sitter node for a single parameter
+            content: Source file content in bytes
+            
+        Returns:
+            Parameter information dictionary or None if incomplete
+        """
+        param_type = None
+        param_name = None
+        
+        for param_child in param_node.children:
+            if param_child.type == 'type_identifier':
+                param_type = self._extract_node_text(param_child, content)
+            elif param_child.type == 'identifier':
+                param_name = self._extract_node_text(param_child, content)
+                
+        if param_type and param_name:
+            return {'type': param_type, 'name': param_name}
+        return None
+
+    def _extract_modifiers(self, modifiers_node: Any, content: bytes) -> List[str]:
+        """Extract modifiers (public, private, static, etc.) from a modifiers node.
+        
+        Args:
+            modifiers_node: Tree-sitter node containing modifiers
+            content: Source file content in bytes
+            
+        Returns:
+            List of modifier strings
+        """
+        return [self._extract_node_text(modifier, content) 
+                for modifier in modifiers_node.children]
+
+    def _extract_method_info(self, method_node: Any, content: bytes) -> Dict:
+        """Extract information from a method declaration node.
+        
+        Args:
+            method_node: Tree-sitter node for method declaration
+            content: Source file content in bytes
+            
+        Returns:
+            Dictionary containing method information
+        """
+        method_info = {
+            'name': '',
+            'return_type': '',
+            'parameters': [],
+            'modifiers': [],
+            'start_line': method_node.start_point[0],
+            'end_line': method_node.end_point[0],
+            'body': self._extract_node_text(method_node, content)
+        }
+
+        for child in method_node.children:
+            if child.type == 'identifier':
+                method_info['name'] = self._extract_node_text(child, content)
+            elif child.type == 'modifiers':
+                method_info['modifiers'] = self._extract_modifiers(child, content)
+            elif child.type == 'formal_parameters':
+                method_info['parameters'] = self._extract_parameters(child, content)
+
+        return method_info
+
+    def _extract_field_info(self, field_node: Any, content: bytes) -> Dict:
+        """Extract information from a field declaration node.
+        
+        Args:
+            field_node: Tree-sitter node for field declaration
+            content: Source file content in bytes
+            
+        Returns:
+            Dictionary containing field information
+        """
+        field_info = {
+            'type': '',
+            'name': '',
+            'modifiers': []
+        }
+
+        for child in field_node.children:
+            if child.type == 'modifiers':
+                field_info['modifiers'] = self._extract_modifiers(child, content)
+            elif child.type == 'type_identifier':
+                field_info['type'] = self._extract_node_text(child, content)
+            elif child.type == 'variable_declarator':
+                for var_child in child.children:
+                    if var_child.type == 'identifier':
+                        field_info['name'] = self._extract_node_text(var_child, content)
+
+        return field_info
+
+    def _extract_class_info(self, class_node: Any, content: bytes) -> Dict:
+        """Extract information from a class declaration node.
+        
+        Args:
+            class_node: Tree-sitter node for class declaration
+            content: Source file content in bytes
+            
+        Returns:
+            Dictionary containing class information
+        """
+        class_info = {
+            'name': '',
+            'modifiers': [],
+            'fields': [],
+            'methods': [],
+            'start_line': class_node.start_point[0],
+            'end_line': class_node.end_point[0]
+        }
+
+        for child in class_node.children:
+            if child.type == 'identifier':
+                class_info['name'] = self._extract_node_text(child, content)
+            elif child.type == 'modifiers':
+                class_info['modifiers'] = self._extract_modifiers(child, content)
+            elif child.type == 'class_body':
+                self._process_class_body(child, content, class_info)
+
+        return class_info
+
+    def _process_class_body(self, body_node: Any, content: bytes, class_info: Dict) -> None:
+        """Process the body of a class node to extract fields and methods.
+        
+        Args:
+            body_node: Tree-sitter node for class body
+            content: Source file content in bytes
+            class_info: Dictionary to update with extracted information
+        """
+        for child in body_node.children:
+            if child.type == 'field_declaration':
+                field_info = self._extract_field_info(child, content)
+                class_info['fields'].append(field_info)
+            elif child.type == 'method_declaration':
+                method_info = self._extract_method_info(child, content)
+                class_info['methods'].append(method_info)
+
+    def _extract_file_metadata(self, root_node: Any, content: bytes, file_info: Dict) -> None:
+        """Extract package and import information from file.
+        
+        Args:
+            root_node: Root tree-sitter node
+            content: Source file content in bytes
+            file_info: Dictionary to update with extracted information
+        """
+        for child in root_node.children:
+            if child.type == 'package_declaration':
+                for pkg_child in child.children:
+                    if pkg_child.type == 'scoped_identifier':
+                        file_info['package'] = self._extract_node_text(pkg_child, content)
+            elif child.type == 'import_declaration':
+                for imp_child in child.children:
+                    if imp_child.type == 'scoped_identifier':
+                        file_info['imports'].append(self._extract_node_text(imp_child, content))
+            elif child.type == 'class_declaration':
+                class_info = self._extract_class_info(child, content)
+                file_info['classes'].append(class_info)
+
+    def parse_file(self, file_path: str) -> Optional[Dict]:
+        """Parse a single Java file and extract its structure.
         
         Args:
             file_path: Path to the Java file
             
         Returns:
-            Dict containing the parsed content or None if parsing fails
+            Dictionary containing the parsed content or None if parsing fails
         """
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, 'rb') as f:
                 content = f.read()
-                
-            # Get file metadata
+
             file_info = {
                 'file_path': file_path,
-                'content': content,
-                'size': len(content.splitlines())
+                'content': content.decode('utf-8'),
+                'size': len(content.splitlines()),
+                'classes': [],
+                'imports': [],
+                'package': None
             }
-            
-            # Basic validation
+
             if file_info['size'] > settings.MAX_FILE_SIZE:
                 logger.warning(f"File {file_path} exceeds maximum size limit")
-                # TODO: Implement file splitting logic here
                 return file_info
+
+            tree = self.parser.parse(content)
+            self._extract_file_metadata(tree.root_node, content, file_info)
             
             return file_info
-            
+
         except Exception as e:
             logger.error(f"Error parsing file {file_path}: {str(e)}")
             return None
-    
+
     def parse_directory(self, directory_path: str) -> List[Dict]:
-        """
-        Parse all Java files in a directory
+        """Parse all Java files in a directory.
         
         Args:
             directory_path: Path to the directory containing Java files
