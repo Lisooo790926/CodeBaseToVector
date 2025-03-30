@@ -41,11 +41,11 @@ This MCP Server aims to:
 ## Implementation Plan
 
 ### Phase 1: Core Functionality
-- ✅ Basic project structure setup
-- ✅ Basic Java file reading
-- [ ] Tree-sitter code structure parsing
-- [ ] File splitting logic
-- [ ] Metadata extraction (methods, classes)
+- [v] Basic project structure setup
+- [V] Basic Java file reading
+- [v] Tree-sitter code structure parsing
+- [v] File splitting logic
+- [v] Metadata extraction (methods, classes)
 
 ### Phase 2: Vectorization
 - [ ] Google Vertex AI integration
