@@ -64,10 +64,10 @@ def test_store_vectors(vector_storage_service):
     metadata = [
         CodeVectorMetadata(
             file_path="dummy.java",
-            code_type="method",
-            code_content="void dummy() {}",
-            language="java",
-            project_name="test_project"
+            package="com.example",
+            class_name="TestClass",
+            methods_name=["dummy"],
+            fields_name=[]
         )
     ]
     result = vector_storage_service.store_vectors("test_collection", vectors, metadata)

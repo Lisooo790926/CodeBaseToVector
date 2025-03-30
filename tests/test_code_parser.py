@@ -41,35 +41,35 @@ def test_parse_file(parser, java_file):
     
     # 基本斷言
     assert parsed_file is not None
-    assert 'file_path' in parsed_file
-    assert 'content' in parsed_file
-    assert 'size' in parsed_file
+    assert parsed_file.file_path == java_file
+    assert parsed_file.content is not None
+    assert parsed_file.size is not None
     
     # 元數據斷言
-    assert 'package' in parsed_file
-    assert 'imports' in parsed_file
-    assert 'classes' in parsed_file
+    assert parsed_file.package is not None
+    assert parsed_file.imports is not None
+    assert parsed_file.classes is not None
     
     # 如果有類，測試類的元數據
-    if parsed_file['classes']:
-        test_class = parsed_file['classes'][0]
-        assert 'name' in test_class
-        assert 'modifiers' in test_class
-        assert 'fields' in test_class
-        assert 'methods' in test_class
+    if parsed_file.classes:
+        test_class = parsed_file.classes[0]
+        assert test_class.name is not None
+        assert test_class.modifiers is not None
+        assert test_class.fields is not None
+        assert test_class.methods is not None
         
         # 如果有方法，測試方法的元數據
-        if test_class['methods']:
-            test_method = test_class['methods'][0]
-            assert 'name' in test_method
-            assert 'parameters' in test_method
-            assert 'modifiers' in test_method
-            assert 'body' in test_method
-            assert 'start_line' in test_method
-            assert 'end_line' in test_method
+        if test_class.methods:
+            test_method = test_class.methods[0]
+            assert test_method.name is not None
+            assert test_method.parameters is not None
+            assert test_method.modifiers is not None
+            assert test_method.body is not None
+            assert test_method.start_line is not None
+            assert test_method.end_line is not None
             
             print(f"Successfully parsed file: {java_file}")
-            print(f"Found class: {test_class['name']} with {len(test_class['methods'])} methods")
+            print(f"Found class: {test_class.name} with {len(test_class.methods)} methods")
 
 if __name__ == '__main__':
     pytest.main(['-v', __file__]) 

@@ -110,6 +110,7 @@ class JavaCodeParser:
         """
         method_info = MethodInfo(
             name='',
+            type='method',
             return_type='',
             parameters=[],
             modifiers=[],
@@ -141,8 +142,11 @@ class JavaCodeParser:
             Dictionary containing field information
         """
         field_info = FieldInfo(
-            type='',
+            type='field',
             name='',
+            start_line=field_node.start_point[0],
+            end_line=field_node.end_point[0],
+            body=self._extract_node_text(field_node, content),
             modifiers=[]
         )
 
@@ -170,6 +174,7 @@ class JavaCodeParser:
         """
         class_info = ClassInfo(
             name='',
+            type='class',
             modifiers=[],
             fields=[],
             methods=[],
@@ -245,7 +250,7 @@ class JavaCodeParser:
                 size=len(content.splitlines()),
                 classes=[],
                 imports=[],
-                package=None
+                package=""
             )
 
             tree = self.parser.parse(content)

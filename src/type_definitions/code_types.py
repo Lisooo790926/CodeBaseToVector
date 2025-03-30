@@ -1,11 +1,10 @@
-from typing import Any, List
+from typing import List
 from pydantic import BaseModel
-
 
 class BaseCode(BaseModel):
     """Base class for code elements."""
     name: str
-    type: str
+    type: str = ""  # class, method, field
     start_line: int = 0
     end_line: int = 0
     body: str = ""
@@ -47,23 +46,24 @@ class CodeMetadata(BaseModel):
 class CodeVectorMetadata(BaseModel):
     """Metadata for code vectors stored in Qdrant."""
     file_path: str
-    code_type: str  # 'class', 'method', 'file'
     package: str = ""
     class_name: str = ""
     methods_name: List[str] = []
     fields_name: List[str] = []
 
-    def __init__(self, code_metadata: CodeMetadata, **data: Any):
-        super().__init__(**data)
-        self.file_path = code_metadata.file_path
-        self.code_type = code_metadata.type
-        self.package = code_metadata.package
+    @classmethod
+    def from_code_metadata(cls, code_metadata: CodeMetadata) -> "CodeVectorMetadata":
+        result = cls(
+            file_path=code_metadata.file_path,
+            package=code_metadata.package,
+        )
 
         if code_metadata.classes:
-            self.class_name = code_metadata.classes[0].name
-            self.methods_name = [method.name for method in code_metadata.classes[0].methods] if code_metadata.classes[0].methods else []
-            self.fields_name = [field.name for field in code_metadata.classes[0].fields] if code_metadata.classes[0].fields else []
+            result.class_name = code_metadata.classes[0].name
+            result.methods_name = [method.name for method in code_metadata.classes[0].methods] if code_metadata.classes[0].methods else []
+            result.fields_name = [field.name for field in code_metadata.classes[0].fields] if code_metadata.classes[0].fields else []
 
+        return result
 
 class ProcessedCodeChunk(BaseModel):
     """Type definition for processed code chunk."""

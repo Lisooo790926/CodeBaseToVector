@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 import logging
 from src.services.service_factory import ServiceFactory
-from src.services.vector_storage import CodeVectorMetadata
+from src.type_definitions.code_types import CodeVectorMetadata
 from src.config.settings import settings
 
 
@@ -74,24 +74,26 @@ class CodebaseService:
             
 
             for code_metadata in code_metadata_list:
-
                 # current strategy is put each file content into the vector
                 # TODO: test to put each class content into the vector instead of file content
                 # TODO: test to put each method content into the vector instead of file content
                 vector = await self.vector_embedding.generate_embedding(code_metadata.content)
 
-                code_vector_metadata = CodeVectorMetadata(code_metadata)
+                code_vector_metadata = CodeVectorMetadata.from_code_metadata(code_metadata)
                 
                 vectors.append(vector)
                 vector_metadata_list.append(code_vector_metadata)
             
             # Store vectors and metadata
             if vectors and vector_metadata_list:
-                return self.vector_storage.store_vectors(
+                success = self.vector_storage.store_vectors(
                     settings.QDRANT_COLLECTION_NAME,
                     vectors,
                     vector_metadata_list
                 )
+                if not success:
+                    self.logger.error("Failed to store vectors")
+                    return False
             
             self.logger.info(f"Stored {len(vectors)} vectors for project {project_name}")
             return True
@@ -118,7 +120,7 @@ class CodebaseService:
         """
         try:
             # Generate vector for the question
-            query_vector = await self.vector_embedding.get_embedding(question)
+            query_vector = await self.vector_embedding.generate_embedding(question)
             
             # Search for similar vectors
             results = self.vector_storage.search_vectors(
