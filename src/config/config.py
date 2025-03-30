@@ -2,9 +2,9 @@ from typing import Optional
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    # Google Cloud settings
-    GOOGLE_CLOUD_PROJECT: str
-    GOOGLE_APPLICATION_CREDENTIALS: str
+    # Google Cloud settings (optional for testing)
+    GOOGLE_CLOUD_PROJECT: Optional[str] = None
+    GOOGLE_APPLICATION_CREDENTIALS: Optional[str] = None
     
     # Qdrant settings
     QDRANT_HOST: str = "localhost"
