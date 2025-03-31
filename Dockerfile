@@ -1,5 +1,5 @@
 # Use a Python image with uv pre-installed
-FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS uv
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS uv
 
 WORKDIR /app
 
@@ -24,4 +24,4 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Run the server
-ENTRYPOINT ["python", "-m", "codebase_mcp"]
+ENTRYPOINT ["codebase-mcp"]

@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import List, Dict, Optional, Any
 import logging
 
-from src.type_definitions.code_types import ClassInfo, CodeMetadata, FieldInfo, MethodInfo, ParameterInfo
+from type_definitions.code_types import ClassInfo, CodeMetadata, FieldInfo, MethodInfo, ParameterInfo
 
-from src.config.settings import settings
+from config.settings import settings
 from tree_sitter_languages import get_language, get_parser
 
 class JavaCodeParser:

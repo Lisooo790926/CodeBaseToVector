@@ -4,7 +4,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from qdrant_client.http.models import Distance, VectorParams, PointStruct
 
-from src.type_definitions.code_types import CodeVectorMetadata
+from type_definitions.code_types import CodeVectorMetadata
 
 class VectorStorageService:
     """Service for managing vector storage operations using Qdrant."""

@@ -1,8 +1,9 @@
+import logging
 from typing import Optional
-from src.config.settings import settings
-from src.services.vector_storage import VectorStorageService
-from src.services.vector_embedding import VectorEmbeddingService
-from src.services.code_parser import JavaCodeParser
+from config.settings import settings
+from services.vector_storage import VectorStorageService
+from services.vector_embedding import VectorEmbeddingService
+from services.code_parser import JavaCodeParser
 
 
 class ServiceFactory:
@@ -11,6 +12,8 @@ class ServiceFactory:
     _vector_storage: Optional[VectorStorageService] = None
     _vector_embedding: Optional[VectorEmbeddingService] = None
     _java_code_parser: Optional[JavaCodeParser] = None
+
+    logger = logging.getLogger(__name__)
     
     @classmethod
     def get_vector_storage(cls) -> VectorStorageService:
@@ -20,6 +23,8 @@ class ServiceFactory:
                 host=settings.QDRANT_HOST,
                 port=settings.QDRANT_PORT
             )
+
+            cls.logger.info(f"settings: {settings}")
             # Ensure the default collection exists
             if not cls._vector_storage.collection_exists(settings.QDRANT_COLLECTION_NAME):
                 cls._vector_storage.create_collection(

@@ -1,9 +1,9 @@
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import logging
-from src.services.service_factory import ServiceFactory
-from src.type_definitions.code_types import CodeVectorMetadata
-from src.config.settings import settings
+from services.service_factory import ServiceFactory
+from type_definitions.code_types import CodeVectorMetadata
+from config.settings import settings
 
 
 class CodebaseService:

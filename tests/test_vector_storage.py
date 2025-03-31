@@ -48,7 +48,7 @@ class DummyQdrantClient:
 @pytest.fixture
 def vector_storage_service():
     # Create a VectorStorageService instance with a dummy Qdrant client
-    service = VectorStorageService(host="localhost", port=6333)
+    service = VectorStorageService(host="qdrant", port=6333)
     service.client = DummyQdrantClient()
     return service
 

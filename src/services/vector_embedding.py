@@ -2,7 +2,7 @@ import os
 from typing import List
 import logging
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from src.config.settings import settings
+from config.settings import settings
 
 class VectorEmbeddingService:
     """Service for generating embeddings using Google Generative AI.

@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [project.scripts]
-codebase-mcp = "server:main"
+codebase-mcp = "codebase_mcp:main"
 
 [build-system]
 requires = ["hatchling"]
