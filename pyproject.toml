@@ -16,8 +16,8 @@ dependencies = [
     "aiofiles>=23.2.1",
     "tree_sitter>=0.20.4",
     "tree_sitter_languages>=1.10.2",
-    "mcp>=1.0.0",
-    "click>=8.1.7"
+    "click>=8.1.7",
+    "mcp[cli]>=1.6.0",
 ]
 
 [project.scripts]

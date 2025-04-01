@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 import logging
 from services.service_factory import ServiceFactory
-from type_definitions.code_types import CodeVectorMetadata
+from type_definitions.code_types import CodeDataForVector, CodeVectorMetadata
 from config.settings import settings
 
 
@@ -35,6 +35,33 @@ class CodebaseService:
             java_files.append(str(path))
             
         return java_files
+    
+
+    def get_separated_code_for_vector(self, root_path: str) -> List[str]:
+        """Get the separated code in the codebase for a project.
+        
+        Args:
+            project_name: Name of the project
+            
+        """
+        code_metadata_list = self.java_code_parser.parse_directory(root_path)
+        self.logger.info(f"Parsed {len(code_metadata_list)} files in {root_path}")
+
+        result = []
+        for code_metadata in code_metadata_list:
+            # current strategy is put each file content into the vector
+            # TODO: test to put each class content into the vector instead of file content
+            # TODO: test to put each method content into the vector instead of file content
+
+            code_vector_metadata = CodeVectorMetadata.from_code_metadata(code_metadata)
+            code_data_for_vector = CodeDataForVector(
+                transfer_body=code_metadata.content,
+                metadata=code_vector_metadata
+            )
+            result.append(code_data_for_vector)
+
+        return result
+
 
     async def update_codebase(
         self,
@@ -66,24 +93,13 @@ class CodebaseService:
             java_files = self._find_java_files(root_path)
             self.logger.info(f"Found {len(java_files)} Java files in {root_path}")
 
-            code_metadata_list = self.java_code_parser.parse_directory(root_path)
-            
-            # if want to see the parsed code metadata, uncomment the following line
-            # self.logger.debug(f"Parsed {code_metadata_list} files in {root_path}")
-            self.logger.info(f"Parsed {len(code_metadata_list)} files in {root_path}")
-            
+            separated_codes = self.get_separated_code_for_vector(root_path)
 
-            for code_metadata in code_metadata_list:
-                # current strategy is put each file content into the vector
-                # TODO: test to put each class content into the vector instead of file content
-                # TODO: test to put each method content into the vector instead of file content
-                vector = await self.vector_embedding.generate_embedding(code_metadata.content)
+            for separated_code in separated_codes:
+                separated_code_vector = await self.vector_embedding.generate_embedding(separated_code.transfer_body)
+                vectors.append(separated_code_vector)
+                vector_metadata_list.append(separated_code.metadata)
 
-                code_vector_metadata = CodeVectorMetadata.from_code_metadata(code_metadata)
-                
-                vectors.append(vector)
-                vector_metadata_list.append(code_vector_metadata)
-            
             # Store vectors and metadata
             if vectors and vector_metadata_list:
                 success = self.vector_storage.store_vectors(
@@ -93,14 +109,14 @@ class CodebaseService:
                 )
                 if not success:
                     self.logger.error("Failed to store vectors")
-                    return False
+                    raise Exception("Failed to store vectors")
             
             self.logger.info(f"Stored {len(vectors)} vectors for project {project_name}")
             return True
             
         except Exception as e:
             self.logger.error(f"Failed to update codebase for project {project_name}: {str(e)}")
-            return False
+            raise e
 
     async def query_codebase(
         self,

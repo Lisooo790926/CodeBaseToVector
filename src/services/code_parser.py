@@ -243,7 +243,6 @@ class JavaCodeParser:
             with open(file_path, 'rb') as f:
                 content = f.read()
 
-            print(f"Parsing file {file_path}")
             file_info = CodeMetadata(
                 file_path=file_path,
                 content=content.decode('utf-8'),

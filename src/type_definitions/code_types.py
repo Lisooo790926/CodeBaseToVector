@@ -64,6 +64,11 @@ class CodeVectorMetadata(BaseModel):
             result.fields_name = [field.name for field in code_metadata.classes[0].fields] if code_metadata.classes[0].fields else []
 
         return result
+    
+class CodeDataForVector(BaseModel):
+    """Type definition for code data for vector."""
+    transfer_body: str
+    metadata: CodeVectorMetadata
 
 class ProcessedCodeChunk(BaseModel):
     """Type definition for processed code chunk."""
